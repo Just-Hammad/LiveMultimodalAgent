@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Status</title>
+    <style>
+        /* Basic reset for consistency */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Use a clean, modern font */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            line-height: 1.6;
+            background-color: #f4f7f6; /* Light gray background */
+            color: #333; /* Dark text color */
+            display: flex; /* Use flexbox for centering */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            text-align: center; /* Center text within the container */
+            padding: 20px; /* Add some padding for smaller screens */
+        }
+
+        /* Main content container */
+        .container {
+            background-color: #ffffff; /* White background for the card */
+            padding: 40px 50px; /* Generous padding */
+            border-radius: 12px; /* Rounded corners */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+            max-width: 600px; /* Limit maximum width */
+            width: 100%; /* Make it responsive */
+        }
+
+        /* Status indicator styling */
+        .status {
+            display: inline-block; /* Allow padding and background */
+            background-color: #e0f2f7; /* Light blue background */
+            color: #0277bd; /* Darker blue text */
+            padding: 8px 16px;
+            border-radius: 20px; /* Pill shape */
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 25px; /* Space below status */
+        }
+
+        /* Heading style */
+        h1 {
+            font-size: 1.8em; /* Slightly larger heading */
+            color: #2c3e50; /* Darker blue-gray */
+            margin-bottom: 15px; /* Space below heading */
+        }
+
+        /* Paragraph style */
+        p {
+            font-size: 1.1em;
+            color: #555; /* Slightly lighter text */
+            margin-bottom: 30px; /* Space below paragraph */
+        }
+
+        /* Link styling (looks like a button) */
+        .frontend-link {
+            display: inline-block; /* Allows padding and margin */
+            background-color: #007bff; /* Primary blue color */
+            color: #ffffff; /* White text */
+            padding: 12px 25px; /* Button padding */
+            border-radius: 8px; /* Rounded corners for button */
+            text-decoration: none; /* Remove underline */
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3); /* Subtle blue shadow */
+        }
+
+        /* Link hover effect */
+        .frontend-link:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+            transform: translateY(-2px); /* Slight lift effect */
+        }
+
+        /* Link active (click) effect */
+        .frontend-link:active {
+            transform: translateY(0); /* Return to original position */
+            box-shadow: 0 1px 3px rgba(0, 123, 255, 0.2); /* Smaller shadow */
+        }
+
+        /* Styling for the URL itself if needed separately */
+        .url-display {
+            font-family: 'Courier New', Courier, monospace; /* Monospace font for URL */
+            background-color: #e9ecef; /* Light gray background for URL */
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 1em;
+            word-break: break-all; /* Prevent long URLs from overflowing */
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="status">
+            ✅ Backend Operational
+        </div>
+
+        <h1>Everything Looks Good Here!</h1>
+
+        <p>
+            The backend service is up and running smoothly. To use the application, please visit the frontend interface.
+        </p>
+
+        <a href="http://1point.artsensei.ai" class="frontend-link" target="_blank" rel="noopener noreferrer">
+            Go to 1point.artsensei.ai
+        </a>
+        </div>
+
+    <script>
+        // No JavaScript needed for this simple static page,
+        // but you can add interactions here later if required.
+        console.log("Backend status page loaded.");
+    </script>
+
+</body>
+</html>
