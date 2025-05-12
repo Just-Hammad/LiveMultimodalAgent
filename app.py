@@ -54,11 +54,17 @@ sessions = {}
 logging.basicConfig(level=logging.INFO) 
 app.logger.setLevel(logging.INFO) 
 
-# Define the root route to serve the test form
+# Define the root route to serve the built frontend UI
 @app.route('/')
 def index():
-    """Serve the main voice interaction interface."""
-    return render_template('voice_interface.html')
+    """Serve the main frontend UI (Vite build)."""
+    return send_from_directory(os.path.join(app.root_path, 'frontend', 'dist'), 'index.html')
+
+# Route to serve static assets for the frontend UI
+@app.route('/assets/<path:filename>')
+def serve_frontend_assets(filename):
+    """Serve static assets from the frontend build's assets directory."""
+    return send_from_directory(os.path.join(app.root_path, 'frontend', 'dist', 'assets'), filename)
 
 @app.route('/analyze', methods=['POST'])
 def analyze_image():
@@ -936,29 +942,6 @@ def generate_elevenlabs_audio_with_voice(text, voice_id, api_key):
             "status": "error",
             "message": f"Error: {str(e)}"
         }
-
-@app.route('/static/<path:filename>')
-def serve_static(filename):
-    static_folder = os.path.join(os.path.dirname(__file__), 'static')
-    os.makedirs(static_folder, exist_ok=True) 
-    return send_from_directory(static_folder, filename)
-
-@app.route('/react/')
-@app.route('/react/<path:path>')
-def serve_react(path=''):
-    """Serve the React app at /react/ path."""
-    react_build_folder = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
-    
-    if path != '' and os.path.exists(os.path.join(react_build_folder, path)):
-        return send_from_directory(react_build_folder, path)
-    else:
-        return send_from_directory(react_build_folder, 'index.html')
-
-@app.route('/assets/<path:filename>')
-def serve_react_assets(filename):
-    """Serve the React app assets."""
-    assets_folder = os.path.join(os.path.dirname(__file__), 'frontend', 'dist', 'assets')
-    return send_from_directory(assets_folder, filename)
 
 @app.route('/v1/test', methods=['GET', 'POST', 'OPTIONS'])
 def test_endpoint():

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useConversation } from '@11labs/react';
 import './App.css';
+import Captions from './components/Captions';
 
 function App() {
   // Basic state
@@ -10,6 +11,7 @@ function App() {
   const [selectedImage, setSelectedImage] = useState(null); // State for selected image file
   const [isUploading, setIsUploading] = useState(false); // State for upload loading indicator
   const [sessionId, setSessionId] = useState(null); // State for sessionId
+  const [uploadedImageUrl, setUploadedImageUrl] = useState(null); // Add state to hold the image URL
   
   // Reference to track component mounting status
   const isMounted = useRef(true);
@@ -39,13 +41,13 @@ function App() {
     },
     
     onMessage: (message) => {
-      console.log('Received message:', message);
+      // console.log('Received message (raw):', JSON.stringify(message)); // Keep this commented out for potential future debugging
       if (!isMounted.current) return;
       
-      // Handle user speech transcripts
-      if (message?.type === 'user_transcript' && message.user_transcription_event?.is_final) {
-        const transcript = message.user_transcription_event.user_transcript;
-        console.log('User said:', transcript);
+      // Use message.source to determine type, based on console logs
+      if (message?.source === 'user' && message.message) {
+        const transcript = message.message;
+        // console.log('[App.jsx] User said (from source):', transcript);
         
         setMessages(prev => [...prev, { 
           type: 'user', 
@@ -53,25 +55,34 @@ function App() {
           timestamp: new Date().toISOString()
         }]);
       } 
-      // Handle agent responses
-      else if (message?.type === 'agent_response') {
-        let messageText = '';
+      // Handle agent responses based on source
+      else if (message?.source === 'ai' && message.message) {
+        const messageText = message.message;
+        // console.log('[App.jsx] Agent said (from source):', messageText);
         
-        if (message.message) {
-          messageText = message.message;
-        } else if (message.agent_response_event?.text) {
-          messageText = message.agent_response_event.text;
-        }
-        
-        if (messageText) {
-          console.log('Agent said:', messageText);
-          setMessages(prev => [...prev, { 
-            type: 'agent', 
-            text: messageText,
-            timestamp: new Date().toISOString()
-          }]);
-        }
+        setMessages(prev => [...prev, { 
+          type: 'agent', 
+          text: messageText,
+          timestamp: new Date().toISOString()
+        }]);
       }
+      // Fallback for original user_transcript type if it ever occurs
+      else if (message?.type === 'user_transcript' && message.user_transcription_event?.is_final) {
+        const transcript = message.user_transcription_event.user_transcript;
+        // console.log('[App.jsx] User said (from type user_transcript):', transcript);
+        setMessages(prev => [...prev, { type: 'user', text: transcript, timestamp: new Date().toISOString() }]);
+      }
+      // Fallback for original agent_response type if it ever occurs
+      else if (message?.type === 'agent_response') {
+        let messageText = message.message || message.agent_response_event?.text;
+        if (messageText) {
+          // console.log('[App.jsx] Agent said (from type agent_response):', messageText);
+          setMessages(prev => [...prev, { type: 'agent', text: messageText, timestamp: new Date().toISOString() }]);
+        }
+      } 
+      // else {
+      //   console.log('[App.jsx] Unhandled message structure:', message);
+      // }
     },
     
     onError: (err) => {
@@ -276,6 +287,9 @@ function App() {
         timestamp: new Date().toISOString()
       }]);
       
+      // Set state with the public image URL
+      setUploadedImageUrl(data.public_image_url); 
+      
       // Clear the selected image from state but keep the UI feedback
       setSelectedImage(null);
     } catch (error) {
@@ -376,39 +390,30 @@ function App() {
         </button>
       </div>
       
-      {/* Conversation History */}
-      <div style={{ 
-        border: '1px solid #ddd', 
-        borderRadius: '4px', 
-        height: '300px', 
-        padding: '15px',
-        overflowY: 'auto',
-        backgroundColor: '#fff',
-        marginBottom: '20px'
-      }}>
-        <h3 style={{ margin: '0 0 10px 0' }}>Conversation</h3>
-        {messages.length === 0 ? (
-          <div style={{ color: '#888', fontStyle: 'italic' }}>No messages yet</div>
-        ) : (
-          <div>
-            {messages.map((msg, index) => (
-              <div key={index} style={{ 
-                marginBottom: '12px',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                backgroundColor: msg.type === 'user' ? '#e3f2fd' : 
-                                msg.type === 'agent' ? '#f1f8e9' : '#f5f5f5'
-              }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
-                  {msg.type === 'user' ? 'You' : 
-                   msg.type === 'agent' ? 'AI' : 'System'}:
-                </div>
-                <div>{msg.text}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Image Display Section */}
+      {uploadedImageUrl && (
+        <div style={{ margin: '18px 0', textAlign: 'center' }}>
+          <h4 style={{ marginBottom: '8px' }}>Uploaded Image Preview:</h4>
+          <img
+            src={uploadedImageUrl}
+            alt="Uploaded context"
+            style={{
+              maxWidth: '300px',
+              maxHeight: '220px',
+              borderRadius: '8px',
+              boxShadow: '0 3px 16px rgba(0,0,0,0.08)'
+            }}
+          />
+        </div>
+      )}
+        {/* Live AI Caption - Enhanced with streaming effect */}      <Captions 
+        text={(() => {
+          const lastAgentMsg = [...messages].reverse().find(msg => msg.type === 'agent');
+          return lastAgentMsg ? lastAgentMsg.text : '';
+        })()} 
+        isActive={status === 'connected'}
+        streamingSpeed={60} // Faster animation while still maintaining natural feel
+      />
       
       {/* Error Display */}
       {error && (
