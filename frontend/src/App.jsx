@@ -3,8 +3,7 @@ import { useConversation } from '@11labs/react';
 import './App.css';
 import Captions from './components/Captions';
 
-function App() {
-  // Basic state
+function App() {  // Basic state
   const [messages, setMessages] = useState([]);
   const [status, setStatus] = useState('disconnected');
   const [error, setError] = useState(null);
@@ -12,13 +11,14 @@ function App() {
   const [isUploading, setIsUploading] = useState(false); // State for upload loading indicator
   const [sessionId, setSessionId] = useState(null); // State for sessionId
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null); // Add state to hold the image URL
+  const [currentAgentMessageId, setCurrentAgentMessageId] = useState(null); // Track current message ID
   
   // Reference to track component mounting status
   const isMounted = useRef(true);
   
 
   // Backend URL for fetching signed URL - use relative path when served from same domain
-  const backendUrl = 'http://127.0.0.1:5003';  // Empty string will make fetch use relative paths
+  const backendUrl = 'https://2point.artsensei.ai/';  // Empty string will make fetch use relative paths
   
   // Initialize the ElevenLabs conversation hook
   const conversation = useConversation({
@@ -32,11 +32,12 @@ function App() {
         setError(null);
       }
     },
-    
-    onDisconnect: () => {
+      onDisconnect: () => {
       console.log('Disconnected');
       if (isMounted.current) {
         setStatus('disconnected');
+        // Reset current agent message ID when disconnected to ensure captions don't continue
+        setCurrentAgentMessageId(null);
       }
     },
     
@@ -54,32 +55,69 @@ function App() {
           text: transcript,
           timestamp: new Date().toISOString()
         }]);
-      } 
-      // Handle agent responses based on source
+      }      // Handle agent responses based on source
       else if (message?.source === 'ai' && message.message) {
         const messageText = message.message;
-        // console.log('[App.jsx] Agent said (from source):', messageText);
+        const messageId = message.id || Date.now().toString();
+        console.log('[App.jsx] Agent said (from source):', messageText);
         
-        setMessages(prev => [...prev, { 
-          type: 'agent', 
-          text: messageText,
-          timestamp: new Date().toISOString()
-        }]);
+        // Check if this is a new message or still the same one
+        if (message.id && message.id === currentAgentMessageId) {
+          // Update existing message
+          setMessages(prev => prev.map(msg => 
+            // Find the latest agent message and update its text
+            msg.type === 'agent' && msg.id === currentAgentMessageId 
+              ? { ...msg, text: messageText, updated: true }
+              : msg
+          ));
+        } else {
+          // This is a new message - clear any previous message and add the new one
+          setCurrentAgentMessageId(messageId);
+          setMessages(prev => {
+            // Filter out any incomplete agent messages (optional)
+            // const filteredMessages = prev.filter(m => m.type !== 'agent' || m.status === 'complete');
+            return [...prev, { 
+              type: 'agent', 
+              id: messageId,
+              text: messageText,
+              timestamp: new Date().toISOString()
+            }];
+          });
+        }
       }
       // Fallback for original user_transcript type if it ever occurs
       else if (message?.type === 'user_transcript' && message.user_transcription_event?.is_final) {
         const transcript = message.user_transcription_event.user_transcript;
         // console.log('[App.jsx] User said (from type user_transcript):', transcript);
         setMessages(prev => [...prev, { type: 'user', text: transcript, timestamp: new Date().toISOString() }]);
-      }
-      // Fallback for original agent_response type if it ever occurs
+      }      // Fallback for original agent_response type if it ever occurs
       else if (message?.type === 'agent_response') {
         let messageText = message.message || message.agent_response_event?.text;
+        const messageId = message.id || Date.now().toString();
+        
         if (messageText) {
-          // console.log('[App.jsx] Agent said (from type agent_response):', messageText);
-          setMessages(prev => [...prev, { type: 'agent', text: messageText, timestamp: new Date().toISOString() }]);
+          console.log('[App.jsx] Agent said (from type agent_response):', messageText);
+          
+          // Check if this is a new message or an update to an existing one
+          if (message.id && message.id === currentAgentMessageId) {
+            // Update existing message
+            setMessages(prev => prev.map(msg => 
+              msg.type === 'agent' && msg.id === currentAgentMessageId 
+                ? { ...msg, text: messageText, updated: true }
+                : msg
+            ));
+          } else {
+            // This is a new message
+            setCurrentAgentMessageId(messageId);
+            setMessages(prev => [...prev, { 
+              type: 'agent', 
+              id: messageId,
+              text: messageText, 
+              timestamp: new Date().toISOString() 
+            }]);
+          }
         }
-      } 
+      }
       // else {
       //   console.log('[App.jsx] Unhandled message structure:', message);
       // }
@@ -137,7 +175,6 @@ function App() {
       }
     }
   };
-
   // Function to stop the conversation
   const stopConversation = async () => {
     if (status !== 'connected') {
@@ -147,6 +184,8 @@ function App() {
     
     try {
       console.log('Stopping conversation...');
+      // Reset the current agent message ID to ensure captions start fresh next time
+      setCurrentAgentMessageId(null);
       await conversation.endSession();
       console.log('Conversation stopped successfully');
     } catch (error) {
@@ -405,14 +444,14 @@ function App() {
             }}
           />
         </div>
-      )}
-        {/* Live AI Caption - Enhanced with streaming effect */}      <Captions 
+      )}        {/* Live AI Caption - Enhanced with streaming effect */}      <Captions 
         text={(() => {
           const lastAgentMsg = [...messages].reverse().find(msg => msg.type === 'agent');
           return lastAgentMsg ? lastAgentMsg.text : '';
         })()} 
-        isActive={status === 'connected'}
+        isActive={status === 'connected' && conversation.status === 'connected'}
         streamingSpeed={60} // Faster animation while still maintaining natural feel
+        key={currentAgentMessageId || 'no-message'} // Force remount on message change
       />
       
       {/* Error Display */}

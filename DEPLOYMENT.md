@@ -39,15 +39,22 @@ This document provides detailed technical information about how the LiveMultimod
 ```nginx
 # HTTP to HTTPS redirect
 server {
+    if ($host = 2point.artsensei.ai) {
+return 301 https://$host$request_uri;
+} # managed by Certbot
+    if ($host = 1point.artsensei.ai) {
+    return 301 https://$host$request_uri;
+} # managed by Certbot
+
     listen 80;
-    server_name Redacted Redacted;
+    server_name 1point.artsensei.ai 2point.artsensei.ai;
     return 301 https://$host$request_uri;
 }
 
-# Frontend Configuration (Redacted)
+# Frontend Configuration (1point.artsensei.ai)
 server {
     listen 443 ssl;
-    server_name Redacted;
+    server_name 1point.artsensei.ai;
     
     ssl_certificate /etc/letsencrypt/live/history.artsensei.ai/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/history.artsensei.ai/privkey.pem;
@@ -71,10 +78,10 @@ server {
     add_header X-XSS-Protection "1; mode=block";
 }
 
-# Backend API Configuration (Redacted)
+# Backend API Configuration (2point.artsensei.ai)
 server {
     listen 443 ssl;
-    server_name Redacted;
+    server_name 2point.artsensei.ai;
     
     ssl_certificate /etc/letsencrypt/live/history.artsensei.ai/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/history.artsensei.ai/privkey.pem;

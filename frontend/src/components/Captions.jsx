@@ -5,9 +5,31 @@ const Captions = ({ text, isActive, streamingSpeed = 60 }) => {
   const [displayText, setDisplayText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const previousText = useRef("");
-  
-  // Streaming animation effect with natural variations
+  const animationTimeoutRef = useRef(null);
+  const textIdRef = useRef(Date.now()); // Add a unique ID for each text to track changes
+    // Streaming animation effect with natural variations
   useEffect(() => {
+    // Clear any existing animation when text changes or component becomes inactive
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current);
+      animationTimeoutRef.current = null;
+    }
+
+    // Reset display text if not active
+    if (!isActive) {
+      setDisplayText("");
+      setIsTyping(false);
+      previousText.current = "";
+      return;
+    }
+
+    // Handle new message (completely different from previous)
+    if (text !== previousText.current) {
+      // Generate a new ID to track this caption stream
+      textIdRef.current = Date.now();
+    }
+
+    // Don't restart animation for the same text
     if (!text || text === previousText.current) return;
 
     let currentIndex = 0;
@@ -33,9 +55,17 @@ const Captions = ({ text, isActive, streamingSpeed = 60 }) => {
       else {
         return streamingSpeed * (0.75 + Math.random() * 0.2);
       }
-    };
-      // Recursive function to handle typing with natural pauses
+    };    // Capture the current ID so we can check if it's still valid in the closure
+    const captionId = textIdRef.current;
+    
+    // Recursive function to handle typing with natural pauses
     const typeNextChar = () => {
+      // Check if this caption is still active and valid
+      if (!isActive || captionId !== textIdRef.current) {
+        setIsTyping(false);
+        return;
+      }
+      
       if (currentIndex < text.length) {
         // Get current character first, before any changes to currentIndex
         const char = text.charAt(currentIndex);
@@ -49,7 +79,7 @@ const Captions = ({ text, isActive, streamingSpeed = 60 }) => {
         
         if (currentIndex < text.length) {
           const delay = getTypingDelay(char, nextChar);
-          setTimeout(typeNextChar, delay);
+          animationTimeoutRef.current = setTimeout(typeNextChar, delay);
         } else {
           setIsTyping(false);
           previousText.current = text;
@@ -58,15 +88,18 @@ const Captions = ({ text, isActive, streamingSpeed = 60 }) => {
         setIsTyping(false);
         previousText.current = text;
       }
-    };
-      // Start the typing animation
-    setTimeout(typeNextChar, 30);
+    };// Start the typing animation
+    animationTimeoutRef.current = setTimeout(typeNextChar, 30);
     
     // Cleanup function
     return () => {
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+        animationTimeoutRef.current = null;
+      }
       setIsTyping(false);
     };
-  }, [text, streamingSpeed]);
+  }, [text, streamingSpeed, isActive]);
 
   // Auto-scroll to the latest caption
   useEffect(() => {

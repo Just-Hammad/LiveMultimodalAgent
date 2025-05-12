@@ -100,7 +100,7 @@ def clear_uploads_and_context(upload_dir, logger):
 @app.route('/')
 def index():
     """Serve the main frontend UI (Vite build)."""
-    return send_from_directory(os.path.join(app.root_path, 'frontend', 'dist'), 'index.html')
+    return render_template('voice_interface.html')
 
 # Route to serve static assets for the frontend UI
 @app.route('/assets/<path:filename>')
