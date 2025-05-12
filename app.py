@@ -11,6 +11,7 @@ from llm_factory import create_llm_service
 from llm_service import LLMService 
 import time 
 import logging
+import shutil
 
 # Load environment variables from .env file
 load_dotenv()
@@ -54,6 +55,47 @@ sessions = {}
 logging.basicConfig(level=logging.INFO) 
 app.logger.setLevel(logging.INFO) 
 
+# --- Helper Function for Cleanup ---
+def clear_uploads_and_context(upload_dir, logger):
+    """Clears the upload directory and resets in-memory context."""
+    global image_context, session_map, pending_session_id
+
+    # 1. Clear In-Memory Context
+    logger.info("Resetting in-memory image context and session maps.")
+    image_context.clear()
+    session_map.clear()
+    pending_session_id = None
+    # sessions.clear() # Clear other stores if applicable
+
+    # 2. Clear Upload Directory Files
+    logger.info(f"Clearing files from upload directory: {upload_dir}")
+    deleted_count = 0
+    error_count = 0
+    if not os.path.isdir(upload_dir):
+        logger.warning(f"Upload directory '{upload_dir}' not found or not a directory. Skipping file cleanup.")
+        return
+
+    for filename in os.listdir(upload_dir):
+        file_path = os.path.join(upload_dir, filename)
+        try:
+            # Make sure it's a file (or link) before deleting
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.remove(file_path)
+                logger.debug(f"Deleted: {filename}")
+                deleted_count += 1
+            # You could add handling for subdirectories if necessary,
+            # e.g., using shutil.rmtree(file_path) if os.path.isdir(file_path)
+            # but be careful with recursive deletion!
+        except OSError as e:
+            logger.error(f"Error deleting file {file_path}: {e}")
+            error_count += 1
+        except Exception as e:
+             logger.error(f"Unexpected error deleting {file_path}: {e}")
+             error_count += 1
+
+    logger.info(f"Cleanup complete. Deleted {deleted_count} files. Encountered {error_count} errors.")
+
+# Define the root route to serve the test form
 # Define the root route to serve the built frontend UI
 @app.route('/')
 def index():
@@ -1070,8 +1112,17 @@ def test_chat_completions():
     })
 
 if __name__ == '__main__':
-    # Ensure environment variables are loaded once at startup
+    # Load environment variables FIRST
     load_dotenv()
+
+    # --- Perform Cleanup BEFORE Running ---
+    app.logger.info("Performing startup cleanup...")
+    clear_uploads_and_context(app.config['UPLOAD_FOLDER'], app.logger)
+    app.logger.info("Startup cleanup finished.")
+    # --- End Cleanup ---
+
     # Run the app
+    app.logger.info("Starting Flask application...")
     # Use host='0.0.0.0' to make it accessible on the network if needed
-    app.run(debug=True, port=5003) 
+    # Turn debug=False for production-like behavior (avoids auto-reloading which triggers cleanup often)
+    app.run(host='0.0.0.0', port=5003, debug=True) # debug=True is useful for development
