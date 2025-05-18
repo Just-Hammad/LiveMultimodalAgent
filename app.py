@@ -33,6 +33,18 @@ app = Flask(__name__)
 CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type", "Authorization", "X-Api-Key", "*"], expose_headers=["*"])
 # --- End CORS Configuration ---
 
+# --- CORS Preflight Helper Function ---
+def handle_preflight():
+    """Handle CORS preflight requests."""
+    headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Api-Key, *',
+        'Access-Control-Max-Age': '3600'
+    }
+    return ('', 204, headers)
+# --- End CORS Preflight Helper ---
+
 # --- Image Context Storage --- 
 # Simple in-memory dictionary to store the mapping between a conversation identifier
 # (e.g., user_id from ElevenLabs) and the filename of the image uploaded for that session.
@@ -401,7 +413,7 @@ def chat_completions():
         
         # FALLBACK: If still no session_id but we have images, use the most recent one
         if not session_id and image_context:
-            newest_session_id = list(image_context.keys())[-1]  # Last key added
+            newest_session_id = list(image_context.keys())[0]  # Last key added
             app.logger.info(f"🔍 FALLBACK: No session_id match, using newest one: {newest_session_id}")
             session_id = newest_session_id
             
@@ -725,8 +737,14 @@ def get_elevenlabs_signed_url():
     2. Generates a unique session ID (UUID).
     3. Stores the session ID temporarily as pending.
     4. Returns both the signed URL and the session ID to the frontend.
+    5. Cleans up previous session data and images.
     """
     global pending_session_id 
+    
+    # Clean up previous session data and images
+    app.logger.info("New connection detected - cleaning up previous session data and images")
+    clear_uploads_and_context(app.config['UPLOAD_FOLDER'], app.logger)
+    
     load_dotenv() 
     api_key = os.getenv('ELEVENLABS_API_KEY')
     app.logger.info(f"[ElevenLabs URL Gen] Retrieved API Key: {'********' + api_key[-4:] if api_key else 'Not Found'}")
