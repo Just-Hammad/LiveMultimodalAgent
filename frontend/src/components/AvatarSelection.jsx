@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import '../styles/AvatarSelection.css';
+// Import avatar images directly - this ensures Vite processes them correctly
+import avatarJohn from '../../assets/avatar_john.jpg';
+import avatarSam from '../../assets/avatar_sam.jpg';
+import avatarLaura from '../../assets/avatar_laura.jpg';
 
 const AvatarSelection = ({ onSelectAvatar, initialAvatar = 'avatar_sam' }) => {
   const [selectedAvatar, setSelectedAvatar] = useState(initialAvatar);
   
   const avatars = [
-    { id: 'avatar_john', name: 'John' },
-    { id: 'avatar_sam', name: 'Sam' },
-    { id: 'avatar_laura', name: 'Laura' }
+    { id: 'avatar_john', name: 'John', src: avatarJohn },
+    { id: 'avatar_sam', name: 'Sam', src: avatarSam },
+    { id: 'avatar_laura', name: 'Laura', src: avatarLaura }
   ];
   
   const handleAvatarSelect = (avatarId) => {
@@ -26,7 +30,7 @@ const AvatarSelection = ({ onSelectAvatar, initialAvatar = 'avatar_sam' }) => {
           role="button"
         >
           <img 
-            src={`../assets/${avatar.id}.jpg`} 
+            src={avatar.src} 
             alt={`${avatar.name} avatar`} 
             className="avatar-image"
           />
