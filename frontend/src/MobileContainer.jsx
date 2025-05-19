@@ -156,7 +156,8 @@ function MobileContainer({
             showCamera={cameraActive}
             onCaptureImage={handleCameraCapture}
             autoCaptureEnabled={isAutoCapturing && status === 'connected' && !isUploading}
-            similarityThreshold={20} // Higher threshold means more difference is required
+            similarityThreshold={10} // Default 10% difference threshold
+            hashResetTimeout={5000} // Reset hash after 5 seconds
           >
             {!uploadedImageUrl && !isUploading && !cameraActive && (
               <div style={{ textAlign: 'center', color: '#666666' }}>

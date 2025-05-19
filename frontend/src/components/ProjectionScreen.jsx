@@ -10,7 +10,7 @@ const ProjectionScreen = ({
   showCamera = false,
   onCaptureImage = null,
   autoCaptureEnabled = false,
-  similarityThreshold = 15 // Default similarity threshold
+  similarityThreshold = 10 // Default similarity threshold
 }) => {
   const [displayMode, setDisplayMode] = useState('image'); // 'image' or 'camera'
     // Reset display mode when props change
@@ -50,13 +50,13 @@ const ProjectionScreen = ({
         ) : (
           <>
             {/* Camera View - either minimized or fullscreen */}
-            {showCamera && (
-              <CameraView 
+            {showCamera && (              <CameraView 
                 isMinimized={displayMode === 'image'} 
                 onClick={handleCameraClick}
                 className={displayMode === 'image' ? 'camera-minimized' : 'camera-fullview'}                onCaptureImage={onCaptureImage}
                 autoCapture={autoCaptureEnabled && displayMode === 'camera'}
                 similarityThreshold={similarityThreshold}
+                hashResetTimeout={5000}
               />
             )}
             

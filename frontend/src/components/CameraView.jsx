@@ -9,7 +9,8 @@ const CameraView = ({
   onCaptureImage,
   autoCapture = false,
   captureInterval = 1000, // 1 second interval by default
-  similarityThreshold = 15 // Threshold for image similarity (0-100, higher = more different)
+  similarityThreshold = 10, // Threshold for image similarity (0-100, higher = more different)
+  hashResetTimeout = 5000 // Time in ms after which to reset the hash (5 seconds)
 }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -199,9 +200,14 @@ const CameraView = ({
         return null;
       }
     }
-    
-    // Update the last hash
+      // Update the last hash
     setLastImageHash(currentHash);
+    
+    // Set a timer to reset the hash after specified timeout
+    setTimeout(() => {
+      setLastImageHash(null);
+      console.log("Image hash reset after timeout");
+    }, hashResetTimeout);
 
     // Convert canvas to blob for full quality image
     return new Promise(resolve => {
@@ -221,7 +227,7 @@ const CameraView = ({
         resolve(file);
       }, 'image/jpeg', 0.95); // High quality JPEG
     });
-  }, [videoRef, getImageData, calculateImageHash, calculateSimilarity, lastImageHash, similarityThreshold]);
+  }, [videoRef, getImageData, calculateImageHash, calculateSimilarity, lastImageHash, similarityThreshold, hashResetTimeout]);
 
   // Auto-capture logic when enabled
   useEffect(() => {
