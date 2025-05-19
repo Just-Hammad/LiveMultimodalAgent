@@ -241,6 +241,7 @@ const CameraView = ({
         return;
       }
       
+      // For auto-capture from camera, we check isMinimized to ensure we're in full view
       if (autoCapture && onCaptureImage && !isLoading && !error && !isMinimized) {
         const imageFile = await captureImage();
         if (imageFile) {
