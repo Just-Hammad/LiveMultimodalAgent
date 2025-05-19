@@ -1,0 +1,150 @@
+/* Projection Screen Component */
+.projection-screen-container {
+  width: 100%;
+  height: 100%; /* Use full height of the container */
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  /* Enhance neumorphic styling for larger image area */
+  box-shadow: 
+    10px 10px 20px rgba(163, 177, 198, 0.7),
+    -10px -10px 20px rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  /* Remove fixed aspect ratio to fill parent container */
+}
+
+.projection-screen {
+  width: 100%;
+  height: 100%;
+  /* Darker background color as requested */
+  background-color: #dde3ed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  /* Only downward shadow as requested */
+  box-shadow: 0 8px 15px -5px rgba(0, 0, 0, 0.15);
+  padding: 10px; /* Add some padding for content breathing room */
+}
+
+/* Image container - handles both fullview and minimized states */
+.image-container {
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* Full view image container */
+.image-container.fullview {
+  width: 90%;
+  height: 90%;
+  z-index: 5;
+  cursor: default;
+}
+
+/* Minimized image container */
+.image-container.minimized {
+  position: absolute;
+  width: 25%;
+  height: 25%;
+  bottom: 20px;
+  left: 20px;
+  z-index: 10;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.image-container.minimized:hover {
+  transform: scale(1.05);
+}
+
+/* Image display */
+.projection-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 12px; /* Slightly softer corners */
+  transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.5s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Subtle shadow for depth */
+  opacity: 0.95; /* Slight transparency to blend better with background */
+}
+
+/* Image loaded state */
+.projection-image.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Image fade-in animation */
+.projection-image.fade-in {
+  animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0.7;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Camera positioning classes */
+.camera-fullview {
+  width: 90%;
+  height: 90%;
+  z-index: 5;
+}
+
+/* Content area */
+.projection-content {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Placeholder text */
+.placeholder-text {
+  color: #999;
+  text-align: center;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

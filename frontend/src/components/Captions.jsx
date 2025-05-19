@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const Captions = ({ text, isActive, streamingSpeed = 60 }) => {
+const Captions = ({ text, isActive, streamingSpeed = 50 }) => {
   const captionsRef = useRef(null);
   const [displayText, setDisplayText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -30,56 +30,53 @@ const Captions = ({ text, isActive, streamingSpeed = 60 }) => {
     }
 
     // Don't restart animation for the same text
-    if (!text || text === previousText.current) return;
-
-    let currentIndex = 0;
+    if (!text || text === previousText.current) return;    let currentIndex = 0;
     setIsTyping(true);
     
     // Start with empty string for a fresh animation
     setDisplayText("");
-      // Function to get natural typing speed variations
-    const getTypingDelay = (char, nextChar) => {
-      // Longer pause after sentence-ending punctuation
-      if (['.', '!', '?'].includes(char)) {
-        return streamingSpeed * 2;
-      }
-      // Medium pause after commas, semicolons, colons
-      else if ([',', ';', ':'].includes(char)) {
-        return streamingSpeed * 1;
-      }
-      // Small pause at spaces to mimic natural speech rhythm
-      else if (char === ' ') {
-        return streamingSpeed * 0.5;
-      }
-      // Random small variations for everything else
-      else {
-        return streamingSpeed * (0.75 + Math.random() * 0.2);
-      }
-    };    // Capture the current ID so we can check if it's still valid in the closure
-    const captionId = textIdRef.current;
     
-    // Recursive function to handle typing with natural pauses
-    const typeNextChar = () => {
+    // Capture the current ID so we can check if it's still valid in the closure
+    const captionId = textIdRef.current;
+      // Split text into words
+    const words = text.split(/(\s+|\b(?=[.,;:!?]))/);
+    
+    // Recursive function to handle typing word by word with natural pauses
+    const typeNextWord = () => {
       // Check if this caption is still active and valid
       if (!isActive || captionId !== textIdRef.current) {
         setIsTyping(false);
         return;
       }
       
-      if (currentIndex < text.length) {
-        // Get current character first, before any changes to currentIndex
-        const char = text.charAt(currentIndex);
-        const nextChar = text.charAt(currentIndex + 1);
+      if (currentIndex < words.length) {
+        // Get current word
+        const word = words[currentIndex];
         
-        // Add the current character to display text
-        setDisplayText(prev => prev + char);
+        // Add the current word to display text
+        setDisplayText(prev => prev + word);
         
-        // Increment index after using current character
+        // Increment index after using current word
         currentIndex++;
         
-        if (currentIndex < text.length) {
-          const delay = getTypingDelay(char, nextChar);
-          animationTimeoutRef.current = setTimeout(typeNextChar, delay);
+        if (currentIndex < words.length) {
+          // Calculate delay based on the word and the context
+          let delay = streamingSpeed;
+          
+          // Last character of the word just added
+          const lastChar = word.charAt(word.length - 1);          // Set different delays based on word endings with balanced timing
+          if (['.', '!', '?'].includes(lastChar)) {
+            delay = streamingSpeed * 4; // Longer pause after sentences
+          } else if ([',', ';', ':'].includes(lastChar)) {
+            delay = streamingSpeed * 2.5; // Medium pause after clauses
+          } else if (word.trim() === '') {
+            delay = streamingSpeed * 0.8; // Light space delay
+          } else {
+            // Random variation for regular words with moderate values
+            delay = streamingSpeed * (1.2 + Math.random() * 0.6);
+          }
+          
+          animationTimeoutRef.current = setTimeout(typeNextWord, delay);
         } else {
           setIsTyping(false);
           previousText.current = text;
@@ -89,7 +86,7 @@ const Captions = ({ text, isActive, streamingSpeed = 60 }) => {
         previousText.current = text;
       }
     };// Start the typing animation
-    animationTimeoutRef.current = setTimeout(typeNextChar, 30);
+    animationTimeoutRef.current = setTimeout(typeNextWord, 150);
     
     // Cleanup function
     return () => {
@@ -120,7 +117,7 @@ const Captions = ({ text, isActive, streamingSpeed = 60 }) => {
         ref={captionsRef}
         className="captions-text"
       >
-        {displayText || <span style={{ opacity: 0.6, fontStyle: 'italic', fontSize: '0.8rem' }}>Waiting...</span>}
+        {displayText || <span style={{ opacity: 0.6, fontStyle: 'italic', fontSize: '1rem' }}>Waiting...</span>}
         {isTyping && <span className="typing-cursor"></span>}
       </div>
     </div>

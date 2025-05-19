@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useConversation } from '@11labs/react';
 import './App.css';
 import Captions from './components/Captions';
+import MobileContainer from './MobileContainer';
+import './components/VoiceWaveform.css';
+import './components/NeumorphicButton.css';
+import './components/ProjectionScreen.css';
 
 function App() {  // Basic state
   const [messages, setMessages] = useState([]);
@@ -274,9 +278,10 @@ function App() {  // Basic state
       setSelectedImage(null);
     }
   };
-
   // Handler for image upload button
   const handleImageUpload = async () => {
+    console.log("handleImageUpload function called"); // Debug message to confirm function is called
+    
     if (!selectedImage) {
       setError("Please select an image first.");
       return;
@@ -338,120 +343,25 @@ function App() {  // Basic state
       setIsUploading(false);
     }
   };
+  // Extract the last agent message for the captions
+  const lastAgentMessage = React.useMemo(() => {
+    const lastAgentMsg = [...messages].reverse().find(msg => msg.type === 'agent');
+    return lastAgentMsg ? lastAgentMsg.text : '';
+  }, [messages]);
 
   return (
-    <div className="App" style={{ maxWidth: '600px', margin: '0 auto', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>ArtSensei Image Discussion</h1>
-      
-      {/* Status Banner */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        padding: '12px',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
-        marginBottom: '15px',
-        backgroundColor: '#f8f9fa'
-      }}>
-        {/* Status indicator light */}
-        <div style={{ 
-          width: '12px', 
-          height: '12px', 
-          borderRadius: '50%', 
-          backgroundColor: 
-            status === 'connected' ? '#4CAF50' : // Green for connected
-            status === 'connecting' ? '#FFC107' : // Yellow for connecting
-            status === 'error' ? '#F44336' : // Red for error
-            '#9E9E9E', // Grey for disconnected
-          marginRight: '10px',
-          transition: 'background-color 0.3s'
-        }}></div>
-        
-        {/* Status text */}
-        <div style={{ flex: 1 }}>
-          <strong>Status:</strong> {
-            status === 'connected' ? 'Connected' :
-            status === 'connecting' ? 'Connecting...' :
-            status === 'error' ? 'Error' : 'Disconnected'
-          }
-        </div>
-      </div>
-      
-      {/* Controls */}
-      <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
-        <button 
-          onClick={status === 'connected' ? stopConversation : handleConnect}
-          disabled={status === 'connecting'}
-          style={{ 
-            flex: 1,
-            padding: '10px 16px',
-            backgroundColor: status === 'connected' ? '#4CAF50' : '#f44336', 
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: status === 'connecting' ? 'not-allowed' : 'pointer',
-            transition: 'background-color 0.3s'
-          }}>
-          {status === 'connecting' ? 'Connecting...' :
-           status === 'connected' ? 'Disconnect' : 'Connect'}
-        </button>
-      </div>
-
-      {/* Image Upload Section */}
-      <div style={{
-        border: '1px dashed #ccc',
-        borderRadius: '4px',
-        padding: '15px',
-        marginBottom: '20px',
-        backgroundColor: '#f0f4f8'
-      }}>
-        <h3 style={{ marginTop: 0, marginBottom: '10px' }}>Upload Image for Discussion</h3>
-        <input
-          type="file"
-          id="imageInput"
-          accept="image/*"
-          onChange={handleImageChange}
-          style={{ display: 'block', marginBottom: '10px' }}
-        />
-        <button 
-          onClick={handleImageUpload}
-          disabled={isUploading || !selectedImage}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#2196F3',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: (isUploading || !selectedImage) ? 'not-allowed' : 'pointer',
-            width: '100%'
-          }}>
-          {isUploading ? 'Uploading...' : 'Upload Image'}
-        </button>
-      </div>
-      
-      {/* Image Display Section */}
-      {uploadedImageUrl && (
-        <div style={{ margin: '18px 0', textAlign: 'center' }}>
-          <h4 style={{ marginBottom: '8px' }}>Uploaded Image Preview:</h4>
-          <img
-            src={uploadedImageUrl}
-            alt="Uploaded context"
-            style={{
-              maxWidth: '300px',
-              maxHeight: '220px',
-              borderRadius: '8px',
-              boxShadow: '0 3px 16px rgba(0,0,0,0.08)'
-            }}
-          />
-        </div>
-      )}        {/* Live AI Caption - Enhanced with streaming effect */}      <Captions 
-        text={(() => {
-          const lastAgentMsg = [...messages].reverse().find(msg => msg.type === 'agent');
-          return lastAgentMsg ? lastAgentMsg.text : '';
-        })()} 
-        isActive={status === 'connected' && conversation.status === 'connected'}
-        streamingSpeed={60} // Faster animation while still maintaining natural feel
-        key={currentAgentMessageId || 'no-message'} // Force remount on message change
+    <div className="App">
+      <MobileContainer
+        uploadedImageUrl={uploadedImageUrl}
+        handleImageChange={handleImageChange}
+        handleImageUpload={handleImageUpload}
+        isUploading={isUploading}
+        selectedImage={selectedImage}
+        status={status}
+        lastAgentMessage={lastAgentMessage}
+        handleConnect={handleConnect}
+        stopConversation={stopConversation}
+        conversation={conversation}
       />
       
       {/* Error Display */}
@@ -462,7 +372,14 @@ function App() {  // Basic state
           color: '#c62828',
           border: '1px solid #ef9a9a',
           borderRadius: '4px',
-          marginBottom: '15px'
+          marginBottom: '15px',
+          position: 'fixed',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          maxWidth: '80%',
+          zIndex: 1000,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
         }}>
           <strong>Error:</strong> {error}
         </div>

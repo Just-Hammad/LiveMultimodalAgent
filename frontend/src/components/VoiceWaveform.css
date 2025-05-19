@@ -1,0 +1,109 @@
+/* Voice Waveform Component */
+.voice-waveform {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow:none; /* No shadow on the container */
+  overflow: visible;
+  background-color: transparent;
+  aspect-ratio: 1/1; /* Ensure parent is always perfectly square */
+}
+
+.voice-waveform .canvas-container {
+  position: absolute;
+  top: -20px; /* Add offset to create space for shadow */
+  left: -20px; /* Add offset to create space for shadow */
+  right: -20px; /* Add offset to create space for shadow */
+  bottom: -20px; /* Add offset to create space for shadow */
+  margin: auto; /* Center the container */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible; /* Critical for showing shadows */
+  transform-origin: center; /* Ensure transformations are from the center */
+  pointer-events: none; /* Allow clicks to pass through to the parent */
+  /* Prevent blurry edges and ensure perfect pixel rendering */
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.voice-waveform:hover {
+  transform: translateY(-2px);
+}
+
+.voice-waveform:active {
+  transform: translateY(2px) scale(0.98);
+  transition: all 0.1s ease;
+}
+
+.voice-waveform.active {
+  cursor: pointer;
+  background-color: #e8ecf2;
+}
+
+.voice-waveform.connecting {
+  cursor: wait;
+}
+
+.waveform-canvas {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto; /* Perfect centering */
+  background-color: transparent;
+  border-radius: 0; /* Let the ring itself be round, not the canvas */
+  transform-origin: center; /* Scale from center */
+  overflow: visible; /* Ensure the ring isn't clipped */
+  z-index: 5; /* Ensure it appears above other elements */
+  pointer-events: none; /* Allow clicks to pass through to the parent */
+  /* Debug outline - uncomment when needed */
+  /* border: 1px solid rgba(255, 0, 0, 0.2); */
+}
+
+/* Connection indicator */
+.connecting-indicator {
+  position: absolute;
+  bottom: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.connecting-indicator .dot {
+  width: 6px;
+  height: 6px;
+  background-color: #909cb3;
+  border-radius: 50%;
+  animation: pulse 1.4s infinite ease-in-out;
+}
+
+.connecting-indicator .dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.connecting-indicator .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.connecting-indicator .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(0.6);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

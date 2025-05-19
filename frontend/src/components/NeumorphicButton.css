@@ -1,0 +1,109 @@
+/* Neumorphic Button Component */
+:root {
+  --background: #e8ecf2; /* Off-white background */
+  --button-bg: #e8ecf2; /* Same as background for seamless look */
+  --shadow-dark: rgba(163, 177, 198, 0.6); /* Shadow color */
+  --shadow-light: rgba(255, 255, 255, 0.8); /* Highlight color */
+  --icon-inactive: #a3b1c6; /* Gray for inactive icons */
+  --icon-active: #3498db; /* Blue for active state */
+  --icon-microphone: #3498db; /* Blue for microphone */
+  --icon-star: #ffa500; /* Orange for star */
+  --icon-heart: #ff69b4; /* Pink for heart */
+  --transition-speed: 0.3s; /* Standard transition speed */
+}
+
+.neumorphic-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: var(--button-bg);
+  color: var(--icon-inactive);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  /* Neumorphic effect with shadow and glow - aligned with reference */
+  box-shadow: 
+      8px 8px 15px var(--shadow-dark), /* Bottom right shadow */
+      -8px -8px 15px var(--shadow-light); /* Top left glow */
+  overflow: hidden;
+  padding: 0;
+  outline: none;
+  z-index: 10;
+}
+
+/* Active state - pressed in effect */
+.neumorphic-button.active {
+  box-shadow: 
+      inset 5px 5px 10px var(--shadow-dark),
+      inset -5px -5px 10px var(--shadow-light);
+  color: var(--icon-active);
+}
+
+/* Hover state - matches the reference */
+.neumorphic-button:not(.disabled):not(.active):hover {
+  transform: translateY(-2px);
+}
+
+/* Pressed state - matches the reference */
+.neumorphic-button:not(.disabled):active {
+  /* Combined physical push down effect - translate and scale */
+  transform: translateY(2px) scale(0.95);
+  
+  /* Change shadow to appear pressed in */
+  box-shadow: 
+      inset 5px 5px 10px var(--shadow-dark),
+      inset -5px -5px 10px var(--shadow-light);
+  
+  /* Speed up the transition for a snappier feel */
+  transition: all 0.1s ease;
+}
+
+/* Disabled state */
+.neumorphic-button.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Button icon */
+.button-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80%;
+  height: 80%;
+  font-size: 20px;
+  color: var(--icon-inactive);
+}
+
+/* Specific icon colors and styles to match reference */
+.neumorphic-button svg path {
+  fill: var(--icon-inactive);
+}
+
+.neumorphic-button.active svg path {
+  fill: var(--icon-active);
+}
+
+.neumorphic-button .fa-microphone,
+.neumorphic-button svg.microphone-icon {
+  color: var(--icon-microphone);
+  font-size: 1.8rem; /* Make microphone larger as per reference */
+}
+
+.neumorphic-button .fa-heart,
+.neumorphic-button svg.heart-icon {
+  color: var(--icon-heart);
+}
+
+.neumorphic-button .fa-star,
+.neumorphic-button svg.star-icon {
+  color: var(--icon-star);
+}
+
+/* Button label */
+.button-label {
+  margin-left: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
