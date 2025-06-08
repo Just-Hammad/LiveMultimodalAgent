@@ -393,7 +393,7 @@ def chat_completions():
             }), 500
 
         try:
-            llm_service: LLMService = create_llm_service(provider=llm_provider, api_key=api_key)
+            llm_service: LLMService = create_llm_service(provider=llm_provider)
         except ValueError as e:
             app.logger.error(f"Error creating LLM service: {str(e)}")
             return jsonify({
