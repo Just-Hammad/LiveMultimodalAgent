@@ -17,14 +17,14 @@ class GeminiService(LLMService):
     GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
     DEFAULT_MODEL = "gemini-2.5-pro-preview-05-06"
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self):
         """
         Initialize the Gemini service with an API key.
         
         Args:
             api_key: Gemini API key (will use environment variable if not provided)
         """
-        self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
+        self.api_key = os.environ.get("GEMINI_API_KEY")
         self.client = OpenAI(
             api_key=self.api_key,
             base_url=self.GEMINI_BASE_URL

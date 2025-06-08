@@ -158,7 +158,7 @@ def analyze_image():
             }), 500
 
         # Create LLM service
-        llm_service = create_llm_service(provider=llm_provider, api_key=api_key)
+        llm_service = create_llm_service(provider=llm_provider)
         
         # Prepare message with image
         messages = [

@@ -14,14 +14,14 @@ class OpenAIService(LLMService):
     Handles communication with OpenAI's API for chat completions and image processing.
     """
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self):
         """
         Initialize the OpenAI service with an API key.
         
         Args:
             api_key: OpenAI API key (will use environment variable if not provided)
         """
-        self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
+        self.api_key = os.environ.get("OPENAI_API_KEY")
         self.client = OpenAI(api_key=self.api_key)
     
     def chat_completion(self, 

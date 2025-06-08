@@ -3,7 +3,7 @@ from llm_service import LLMService
 from service_openapi import OpenAIService
 from service_gemini import GeminiService
 
-def create_llm_service(provider: str = "openai", api_key: Optional[str] = None) -> LLMService:
+def create_llm_service(provider: str = "openai") -> LLMService:
     """
     Factory function to create an LLM service based on the specified provider.
     
@@ -18,8 +18,8 @@ def create_llm_service(provider: str = "openai", api_key: Optional[str] = None) 
         ValueError: If the provider is not supported
     """
     if provider.lower() == "openai":
-        return OpenAIService(api_key=api_key)
+        return OpenAIService()
     elif provider.lower() == "gemini":
-        return GeminiService(api_key=api_key)
+        return GeminiService()
     else:
         raise ValueError(f"Unsupported LLM provider: {provider}. Supported providers are: openai, gemini")
