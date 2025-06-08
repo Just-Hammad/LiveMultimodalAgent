@@ -9,7 +9,6 @@ import './components/ProjectionScreen.css';
 
 function App() {  // Basic state
   const [messages, setMessages] = useState([]);
-  const [status, setStatus] = useState('disconnected');
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null); // State for selected image file
   const [isUploading, setIsUploading] = useState(false); // State for upload loading indicator
@@ -22,24 +21,19 @@ function App() {  // Basic state
   
 
   // Backend URL for fetching signed URL - use relative path when served from same domain
-  const backendUrl = 'https://2point.artsensei.ai/';  // Empty string will make fetch use relative paths
-  
-  // Initialize the ElevenLabs conversation hook
-  const conversation = useConversation({
+  const backendUrl = 'https://2point.artsensei.ai/';  // Empty string will make fetch use relative paths  // Initialize the ElevenLabs conversation hook
+  const { status, isSpeaking, ...conversation } = useConversation({
     autoPlayAudio: true,
     enableAudio: true,
-    
-    onConnect: () => {
+      onConnect: () => {
       console.log('Successfully connected');
       if (isMounted.current) {
-        setStatus('connected');
         setError(null);
       }
     },
       onDisconnect: () => {
       console.log('Disconnected');
       if (isMounted.current) {
-        setStatus('disconnected');
         // Reset current agent message ID when disconnected to ensure captions don't continue
         setCurrentAgentMessageId(null);
       }
@@ -126,20 +120,20 @@ function App() {  // Basic state
       //   console.log('[App.jsx] Unhandled message structure:', message);
       // }
     },
-    
-    onError: (err) => {
+      onError: (err) => {
       console.error('Conversation error:', err);
       if (isMounted.current) {
         setError(`Error: ${err.message || 'Unknown error'}`);
-        setStatus('error');
       }
     },
   });
-  
-  // Fetch signed URL from the backend
+
+  useEffect(() => {
+    console.log('[App.jsx] isSpeaking changed:', isSpeaking);
+  }, [isSpeaking]);
+    // Fetch signed URL from the backend
   const fetchSignedUrl = async () => {
     console.log(`Fetching signed URL from ${backendUrl}/api/elevenlabs/get-signed-url`);
-    setStatus('Fetching URL...');
     try {
       const response = await fetch(`${backendUrl}/api/elevenlabs/get-signed-url`);
       if (!response.ok) {
@@ -155,15 +149,12 @@ function App() {  // Basic state
       return data; // Return the whole object { signedUrl, agentId, sessionId }
     } catch (error) {
       console.error('Failed to fetch signed URL:', error);
-      setStatus(`Error fetching URL: ${error.message}`);
       throw error; // Re-throw to be caught by handleConnect
     }
   };
-
   // Function to start the conversation
   const startConversation = async (signedUrl, agentId, sessionId) => { // Accept agentId and sessionId
     console.log('Starting conversation with signed URL, Agent ID, and Session ID');
-    setStatus('Connecting...');
     try {
       console.log('[Diag] Attempting conversation.startSession...');
       // Use the URL, agentId, and sessionId directly
@@ -172,14 +163,13 @@ function App() {  // Basic state
       setSessionId(sessionId); // Store the sessionId
     } catch (error) {
       console.error('Failed to start conversation:', error);
-      setStatus(`Error connecting: ${error.message || error.reason || 'Unknown connection error'}`);
       // Detailed error logging
       if (error instanceof CloseEvent) {
         console.error(`WebSocket closed with code: ${error.code}, reason: ${error.reason}, wasClean: ${error.wasClean}`);
       }
+      throw error; // Re-throw to be handled by handleConnect
     }
-  };
-  // Function to stop the conversation
+  };  // Function to stop the conversation
   const stopConversation = async () => {
     if (status !== 'connected') {
       console.log('Not connected, nothing to stop');
@@ -197,15 +187,13 @@ function App() {  // Basic state
       setError(`Error stopping conversation: ${error.message}`);
     }
   };
-  
-  // Handler for the connect button
+    // Handler for the connect button
   const handleConnect = async () => {
-    if (conversation.status === 'connected') {
+    if (status === 'connected') {
       console.log('Already connected');
       return;
     }
     
-    setStatus('connecting');
     setError(null);
     
     try {
@@ -223,7 +211,6 @@ function App() {  // Basic state
       // Errors from permission or fetch are already handled and status set
       console.error('Failed to start conversation:', error);
       setError(`Connection failed: ${error.message}`);
-      setStatus('error');
     }
   };
   
@@ -272,44 +259,44 @@ function App() {  // Basic state
   // Handler for file input change
   const handleImageChange = (event) => {
     if (event.target.files && event.target.files[0]) {
-      setSelectedImage(event.target.files[0]);
-      console.log("Image selected:", event.target.files[0].name);
+      const file = event.target.files[0];
+      setSelectedImage(file); // Keep setting state for any UI that might depend on it
+      console.log("Image selected, automatically uploading:", file.name);
+      handleImageUpload(file); // Call upload directly with the file
     } else {
       setSelectedImage(null);
     }
+    // Clear the file input's value to allow selecting the same file again to trigger onChange
+    event.target.value = null;
   };
-  // Handler for image upload button
-  const handleImageUpload = async () => {
-    console.log("handleImageUpload function called"); // Debug message to confirm function is called
+
+  // Handler for image upload
+  const handleImageUpload = async (fileToUpload) => { // Accept file as a parameter
+    console.log("handleImageUpload function called with file:", fileToUpload ? fileToUpload.name : 'undefined'); // Debug message
     
-    if (!selectedImage) {
-      setError("Please select an image first.");
+    if (!fileToUpload) { // Check the passed file
+      setError("No image file provided for upload.");
       return;
     }
     
-    // Allow upload even if not connected yet - the session ID will be stored
-    // and linked when the connection is established
     setIsUploading(true);
     setError(null);
-    console.log("Uploading image:", selectedImage.name);
+    console.log("Uploading image:", fileToUpload.name);
 
-    // Always use the sessionId from the conversation object if available
-    // This ensures we're using the same ID that ElevenLabs assigned
     const currentSessionId = conversation?.sessionId || sessionId;
-    console.log("Current conversation sessionId:", conversation?.sessionId);
-    console.log("Current stored sessionId:", sessionId);
+    console.log("Current conversation sessionId for upload:", conversation?.sessionId);
+    console.log("Current stored sessionId for upload:", sessionId);
     
     const formData = new FormData();
-    formData.append('image', selectedImage);
+    formData.append('image', fileToUpload); // Use the passed file
     if (currentSessionId) {
       console.log("Using sessionId for image upload:", currentSessionId);
       formData.append('session_id', currentSessionId);
     } else {
-      console.log("No sessionId available, backend will use pending session");
+      console.log("No sessionId available for image upload, backend will use pending session");
     }
 
     try {
-      // Simple upload endpoint for images
       console.log(`Sending image to backend: ${backendUrl}/upload_image`);
       
       const response = await fetch(`${backendUrl}/upload_image`, {
@@ -358,10 +345,13 @@ function App() {  // Basic state
         isUploading={isUploading}
         selectedImage={selectedImage}
         status={status}
+        isSpeaking={isSpeaking} // Pass isSpeaking directly
         lastAgentMessage={lastAgentMessage}
         handleConnect={handleConnect}
         stopConversation={stopConversation}
-        conversation={conversation}
+        // conversation object might still be needed for other functionalities if any
+        // If not, it can be removed from here. For now, I'll keep it.
+        conversation={conversation} 
       />
       
       {/* Error Display */}

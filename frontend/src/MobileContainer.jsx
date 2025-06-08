@@ -17,13 +17,14 @@ function MobileContainer({
   lastAgentMessage,
   handleConnect,
   stopConversation,
-  conversation
+  conversation,
+  isSpeaking // Destructure isSpeaking here
 }) {
   // Force waveform to redraw when status changes
   const [waveformKey, setWaveformKey] = useState(0);
   // State for selected avatar
   const [selectedAvatar, setSelectedAvatar] = useState('avatar_sam');
-  const [instructorName, setInstructorName] = useState('Sam');
+  const [instructorName, setInstructorName] = useState('Kai on Composition'); // Default to Kai
   // State for camera
   const [cameraActive, setCameraActive] = useState(false);
   // State for smart camera image capture
@@ -48,11 +49,11 @@ function MobileContainer({
     setSelectedAvatar(avatarId);
     // Update instructor name based on avatar selection
     if (avatarId === 'avatar_john') {
-      setInstructorName('John');
+      setInstructorName('Aaron on Color');
     } else if (avatarId === 'avatar_sam') {
-      setInstructorName('Sam');
+      setInstructorName('Kai on Composition');
     } else if (avatarId === 'avatar_laura') {
-      setInstructorName('Laura');
+      setInstructorName('Laura on Line');
     }
   };
   
@@ -135,6 +136,8 @@ function MobileContainer({
     }
   };
 
+  const showProcessingIndicator = status === 'connected' && !isSpeaking;
+
   return (
     <div className="mobile-container">      
       {/* Header with avatar selection */}
@@ -169,11 +172,19 @@ function MobileContainer({
         
         {/* Captions directly below the image */}
         <div className="captions-area">          
-          <Captions 
-            text={lastAgentMessage || ''}
-            isActive={status === 'connected' && conversation?.status === 'connected'}
-            streamingSpeed={80} 
-          />
+          {showProcessingIndicator ? (
+            <div className="processing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          ) : (
+            <Captions 
+              text={lastAgentMessage || ''}
+              isActive={status === 'connected'}
+              streamingSpeed={80} 
+            />
+          )}
         </div>
       </div>
 
@@ -275,7 +286,7 @@ function MobileContainer({
             isConnected={status === 'connected'}
             isConnecting={status === 'connecting'}
             // Pass conversation status to have waveform react to streaming audio
-            isStreaming={conversation?.status === 'connected'}
+            isSpeaking={isSpeaking} // Use the destructured isSpeaking prop
             size={140} /* Increased from 120 to be larger than the other buttons */
           />
           {/* Connection indicator moved here */}

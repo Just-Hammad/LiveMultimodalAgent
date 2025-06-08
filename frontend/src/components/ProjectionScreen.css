@@ -50,8 +50,8 @@
 /* Minimized image container */
 .image-container.minimized {
   position: absolute;
-  width: 25%;
-  height: 25%;
+  width: 15%; /* Reduced from 25% */
+  height: 15%; /* Reduced from 25% */
   bottom: 20px;
   left: 20px;
   z-index: 10;

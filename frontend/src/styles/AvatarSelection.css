@@ -23,6 +23,7 @@
   transition: all 0.3s ease;
   padding-top: 10px; /* Add padding at the top to create space for alignment */
   height: 80px; /* Fixed height for all avatar options */
+  width: 80px; /* Added fixed width to prevent siblings from shifting */
 }
 
 .avatar-image {
@@ -46,6 +47,7 @@
   text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.3); /* More subtle text shadow */
   margin-top: 5px;
   opacity: 0.9; /* Slightly transparent for a cleaner look */
+  line-height: 1.2; /* Added to reduce space between lines */
 }
 
 /* Active state styling - minimalistic approach */
