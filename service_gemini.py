@@ -15,7 +15,7 @@ class GeminiService(LLMService):
     """
     
     GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
-    DEFAULT_MODEL = "gemini-2.5-pro-preview-05-06"
+    DEFAULT_MODEL = os.environ.get("GEMINI_DEFAULT_MODEL", "gemini-2.5-pro-preview-05-06")
     
     def __init__(self):
         """
