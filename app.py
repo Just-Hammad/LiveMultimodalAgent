@@ -4,6 +4,7 @@ import uuid
 import base64 
 import requests 
 from werkzeug.utils import secure_filename
+from werkzeug.middleware.proxy_fix import ProxyFix # Add this import
 from flask import Flask, request, jsonify, Response, stream_with_context, send_from_directory, render_template 
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -25,6 +26,11 @@ print(f"DEFAULT_MODEL: {os.getenv('DEFAULT_MODEL') or 'Not set'}")
 print(f"=== END ENVIRONMENT VARIABLES DEBUG ===\n")
 
 app = Flask(__name__)
+
+# Apply ProxyFix to trust headers from your reverse proxy
+# This should be done early, before any routes or other app configurations if they depend on URL scheme.
+# x_proto=1 tells ProxyFix to trust the X-Forwarded-Proto header from one hop (your proxy).
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 # --- Configure CORS --- #
 # Allow requests from the Vite dev server origin to all routes
@@ -601,57 +607,6 @@ def chat_completions():
             }
         }), 500
 
-# Function to generate a minimal, hardcoded SSE stream for testing
-def generate_minimal_stream():
-    """Generates a minimal, hardcoded SSE stream for testing ElevenLabs."""
-    app.logger.info(">>> Starting generate_minimal_stream")
-    chunk_id = "chatcmpl-debug123"
-    created = int(time.time())
-    model = "debug-model"
-    
-    try:
-        # Chunk 1: Role + Start of content
-        chunk1 = {
-            "id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model,
-            "choices": [{"delta": {"role": "assistant", "content": "Minimal "}, "index": 0, "finish_reason": None}]
-        }
-        sse_data1 = f"data: {json.dumps(chunk1)}\n\n"
-        yield sse_data1
-        app.logger.info(f"DEBUG: Sent chunk 1: {sse_data1.strip()}")
-        time.sleep(0.5) # Simulate slight delay
-
-        # Chunk 2: More content
-        chunk2 = {
-            "id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model,
-            "choices": [{"delta": {"content": "test response."}, "index": 0, "finish_reason": None}]
-        }
-        sse_data2 = f"data: {json.dumps(chunk2)}\n\n"
-        yield sse_data2
-        app.logger.info(f"DEBUG: Sent chunk 2: {sse_data2.strip()}")
-        time.sleep(0.5)
-
-        # Chunk 3: Finish reason
-        chunk3 = {
-            "id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model,
-            "choices": [{"delta": {}, "index": 0, "finish_reason": "stop"}]
-        }
-        sse_data3 = f"data: {json.dumps(chunk3)}\n\n"
-        yield sse_data3
-        app.logger.info(f"DEBUG: Sent finish chunk: {sse_data3.strip()}")
-
-        # DONE Signal
-        done_signal = "data: [DONE]\n\n"
-        yield done_signal
-        app.logger.info(f"DEBUG: Sent [DONE]: {done_signal.strip()}")
-        
-    except Exception as e:
-        app.logger.error(f"Error in generate_minimal_stream: {e}")
-        error_chunk = {"error": {"message": f"Error generating stream: {e}", "type": "server_error"}}
-        yield f"data: {json.dumps(error_chunk)}\n\n"
-        yield "data: [DONE]\n\n" # Still send DONE even after error
-    finally:
-        app.logger.info("<<< Exiting generate_minimal_stream")
-
 @app.route('/upload_image_get_url', methods=['POST'])
 def upload_image_get_url():
     """Receive an image file and a session_id, save the image, and return a public URL.
@@ -911,41 +866,13 @@ def generate_elevenlabs_audio(text, api_key):
     Returns:
         Dictionary with response information
     """
-    try:
-        # Get voice ID from environment variables or use default
-        voice_id = os.getenv('ELEVENLABS_VOICE_ID', 'pNInz6obpgDQGcFmaJgB')  
-        
-        if voice_id:
-            # Send to ElevenLabs agent
-            return generate_elevenlabs_audio_with_voice(text, voice_id, api_key)
-        else:
-            # Fall back to regular TTS if no voice ID
-            return {
-                "status": "error",
-                "message": "No voice ID provided"
-            }
-            
-    except Exception as e:
-        app.logger.error(f"Error generating ElevenLabs audio: {str(e)}")
-        import traceback
-        traceback.print_exc()
+    voice_id = os.getenv('ELEVENLABS_VOICE_ID', 'pNInz6obpgDQGcFmaJgB')
+    if not voice_id:
+        app.logger.error("Error: ELEVENLABS_VOICE_ID not found in environment variables")
         return {
             "status": "error",
-            "message": f"Error: {str(e)}"
+            "message": "ELEVENLABS_VOICE_ID not configured"
         }
-
-def generate_elevenlabs_audio_with_voice(text, voice_id, api_key):
-    """
-    Generate audio from text using ElevenLabs TTS API.
-    
-    Args:
-        text: The text to convert to speech
-        voice_id: The ID of the ElevenLabs voice
-        api_key: ElevenLabs API key
-        
-    Returns:
-        Dictionary with response information
-    """
     try:
         # ElevenLabs API endpoint for text-to-speech
         url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
@@ -1002,18 +929,6 @@ def generate_elevenlabs_audio_with_voice(text, voice_id, api_key):
             "status": "error",
             "message": f"Error: {str(e)}"
         }
-
-@app.route('/v1/test', methods=['GET', 'POST', 'OPTIONS'])
-def test_endpoint():
-    """Simple endpoint to test if connections from ElevenLabs are working."""
-    if request.method == 'OPTIONS':
-        return handle_preflight()
-    
-    return jsonify({
-        "status": "ok", 
-        "message": "Test endpoint is working!",
-        "timestamp": time.time()
-    })
     
 @app.route('/upload_image', methods=['POST'])
 def upload_image():
@@ -1074,60 +989,6 @@ def upload_image():
         import traceback
         app.logger.error(traceback.format_exc())
         return jsonify({"error": f"Upload failed: {str(e)}"}), 500
-        
-    # Return a simple JSON response
-    return jsonify({
-        "status": "success", 
-        "message": "Connection to custom LLM endpoint successful!",
-        "timestamp": time.strftime('%Y-%m-%d %H:%M:%S')
-    })
-
-@app.route('/v1/test/chat/completions', methods=['POST', 'OPTIONS'])
-def test_chat_completions():
-    """Handle the chat/completions requests that ElevenLabs appends to our test endpoint."""
-    app.logger.info(f"===== TEST CHAT COMPLETIONS ENDPOINT HIT =====")
-    app.logger.info(f"Method: {request.method}")
-    app.logger.info(f"Headers: {dict(request.headers)}")
-    
-    # Handle OPTIONS request for CORS preflight
-    if request.method == 'OPTIONS':
-        headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Api-Key, *',
-            'Access-Control-Max-Age': '3600'
-        }
-        return ('', 204, headers)
-    
-    # Log the request body
-    try:
-        if request.is_json:
-            app.logger.info(f"Request JSON: {request.json}")
-    except Exception as e:
-        app.logger.error(f"Error parsing request JSON: {e}")
-    
-    # Return a simple OpenAI-compatible response
-    return jsonify({
-        "id": f"test-{uuid.uuid4()}",
-        "object": "chat.completion",
-        "created": int(time.time()),
-        "model": "test-model",
-        "choices": [
-            {
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": "Hello! This is a test response from your custom LLM endpoint. The connection is working correctly!"
-                },
-                "finish_reason": "stop"
-            }
-        ],
-        "usage": {
-            "prompt_tokens": 0,
-            "completion_tokens": 0,
-            "total_tokens": 0
-        }
-    })
 
 if __name__ == '__main__':
     # Load environment variables FIRST
