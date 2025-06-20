@@ -50,6 +50,15 @@ class GeminiService(LLMService):
             Either a completion response object or a stream
         """
         try:
+            # Process messages to handle image URLs
+            for message in messages:
+                if isinstance(message.get('content'), list):
+                    for content_part in message['content']:
+                        if content_part.get('type') == 'image_url':
+                            image_url_data = content_part.get('image_url')
+                            if image_url_data and 'url' in image_url_data:
+                                # Convert URL to base64 data URI
+                                image_url_data['url'] = self.process_image(image_url_data['url'])
             # Ensure we always have a model parameter
             model_name = self.DEFAULT_MODEL
             # Prepare parameters for the API call
