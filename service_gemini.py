@@ -81,15 +81,27 @@ class GeminiService(LLMService):
         Returns:
             Processed image data in the format expected by Gemini
         """
-        # If image_data is a URL, return it directly as Gemini supports image URLs
+        # If image_data is a URL, download it.
         if isinstance(image_data, str) and (image_data.startswith('http://') or image_data.startswith('https://')):
-            return image_data
+            try:
+                response = requests.get(image_data)
+                response.raise_for_status()
+                image_data = response.content # Now image_data is bytes
+            except requests.exceptions.RequestException as e:
+                print(f"Failed to download image from {image_data}: {e}")
+                raise
         
-        # If image_data is bytes, encode as base64
+        # If image_data is bytes (either originally or from a URL), encode as base64
         if isinstance(image_data, bytes):
-            # Convert to base64
             base64_image = base64.b64encode(image_data).decode('utf-8')
-            return f"data:image/jpeg;base64,{base64_image}"
+            try:
+                with Image.open(BytesIO(image_data)) as img:
+                    # Determine MIME type from image format, fallback to a generic one
+                    mime_type = Image.MIME.get(img.format, f"image/{img.format.lower()}")
+            except Exception:
+                # Fallback if image format cannot be determined
+                mime_type = "image/jpeg"
+            return f"data:{mime_type};base64,{base64_image}"
         
-        # If it's a string but not a URL, assume it's already base64 encoded
+        # If it's a string but not a URL, assume it's already a data URI
         return image_data
