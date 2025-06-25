@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import '../styles/AvatarSelection.css';
 // Import avatar images directly - this ensures Vite processes them correctly
 import avatarJohn from '../../assets/avatar_john.jpg';
-import avatarSam from '../../assets/avatar_sam.jpg';
+import avatarMorty from '../../assets/avatar_morty.jpg';
 import avatarLaura from '../../assets/avatar_laura.jpg';
 
 const AvatarSelection = ({ onSelectAvatar, initialAvatar = 'avatar_sam' }) => {
@@ -10,7 +10,7 @@ const AvatarSelection = ({ onSelectAvatar, initialAvatar = 'avatar_sam' }) => {
   
   const avatars = [
     { id: 'avatar_john', name: 'Aaron', src: avatarJohn },
-    { id: 'avatar_sam', name: 'Kai', src: avatarSam },
+    { id: 'avatar_morty', name: 'Morty', src: avatarMorty },
     { id: 'avatar_laura', name: 'Laura', src: avatarLaura }
   ];
   

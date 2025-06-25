@@ -23,8 +23,8 @@ function MobileContainer({
   // Force waveform to redraw when status changes
   const [waveformKey, setWaveformKey] = useState(0);
   // State for selected avatar
-  const [selectedAvatar, setSelectedAvatar] = useState('avatar_sam');
-  const [instructorName, setInstructorName] = useState('Kai on Composition'); // Default to Kai
+  const [selectedAvatar, setSelectedAvatar] = useState('avatar_morty');
+  const [instructorName, setInstructorName] = useState('Morty'); // Default to Morty
   // State for camera
   const [cameraActive, setCameraActive] = useState(false);
   // State for smart camera image capture
@@ -50,8 +50,8 @@ function MobileContainer({
     // Update instructor name based on avatar selection
     if (avatarId === 'avatar_john') {
       setInstructorName('Aaron on Color');
-    } else if (avatarId === 'avatar_sam') {
-      setInstructorName('Kai on Composition');
+    } else if (avatarId === 'avatar_morty') {
+      setInstructorName('Morty on Composition');
     } else if (avatarId === 'avatar_laura') {
       setInstructorName('Laura on Line');
     }
