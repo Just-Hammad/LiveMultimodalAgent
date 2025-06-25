@@ -21,7 +21,7 @@ function App() {  // Basic state
   
 
   // Backend URL for fetching signed URL - use relative path when served from same domain
-  const backendUrl = 'https://2point.artsensei.ai/';  // Empty string will make fetch use relative paths  // Initialize the ElevenLabs conversation hook
+  const backendUrl = 'https://1point.artsensei.ai/';  // Empty string will make fetch use relative paths  // Initialize the ElevenLabs conversation hook
   const { status, isSpeaking, ...conversation } = useConversation({
     autoPlayAudio: true,
     enableAudio: true,

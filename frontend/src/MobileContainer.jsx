@@ -115,7 +115,7 @@ function MobileContainer({
       console.log(`Sending camera image to backend`);
       
       // Using the same endpoint as regular image uploads
-      const backendUrl = 'https://2point.artsensei.ai/';
+      const backendUrl = 'https://1point.artsensei.ai/';
       const response = await fetch(`${backendUrl}/upload_image`, {
         method: 'POST',
         body: formData
