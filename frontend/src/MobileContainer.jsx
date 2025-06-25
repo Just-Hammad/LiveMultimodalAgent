@@ -35,7 +35,7 @@ function MobileContainer({
   useEffect(() => {
     setWaveformKey(prev => prev + 1);
   }, [status]);
-  
+
   // Direct click handler to upload image
   const onUploadClick = () => {
     console.log("Upload button clicked directly!!!");

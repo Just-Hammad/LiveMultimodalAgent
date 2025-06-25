@@ -83,20 +83,13 @@
   display: none; /* Hide names for inactive avatars */
 }
 
-/* Hover effects - more subtle and minimalistic */
-.avatar-option.inactive:hover .avatar-image {
-  opacity: 0.85;
-  filter: grayscale(70%);
-  width: 40px; /* Slightly larger on hover but still much smaller than active */
-  height: 40px; /* Slightly larger on hover but still much smaller than active */
-  margin-top: 7.5px; /* Adjusted to keep vertical alignment when size changes */
+/* Hover effects - press down animation */
+.avatar-option:hover .avatar-image {
   box-shadow: 
-      3px 3px 6px rgba(163, 177, 198, 0.4),
-      -3px -3px 6px rgba(255, 255, 255, 0.7);
-}
-
-.avatar-option:hover .avatar-name {
-  transform: translateY(1px); /* More subtle transform */
+      inset 4px 4px 8px rgba(163, 177, 198, 0.7),
+      inset -4px -4px 8px rgba(255, 255, 255, 0.9);
+  transform: scale(0.95);
+  transition: all 0.2s ease;
 }
 
 /* Responsive adjustments */

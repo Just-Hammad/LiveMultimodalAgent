@@ -40,9 +40,12 @@
   color: var(--icon-active);
 }
 
-/* Hover state - matches the reference */
+/* Hover state - new press-down effect */
 .neumorphic-button:not(.disabled):not(.active):hover {
-  transform: translateY(-2px);
+  box-shadow: 
+      inset 5px 5px 10px var(--shadow-dark),
+      inset -5px -5px 10px var(--shadow-light);
+  transform: scale(0.98);
 }
 
 /* Pressed state - matches the reference */

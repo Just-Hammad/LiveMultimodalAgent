@@ -9,9 +9,9 @@ const AvatarSelection = ({ onSelectAvatar, initialAvatar = 'avatar_sam' }) => {
   const [selectedAvatar, setSelectedAvatar] = useState(initialAvatar);
   
   const avatars = [
-    { id: 'avatar_john', name: 'Aaron on Color', src: avatarJohn },
-    { id: 'avatar_sam', name: 'Kai on Composition', src: avatarSam },
-    { id: 'avatar_laura', name: 'Laura on Line', src: avatarLaura }
+    { id: 'avatar_john', name: 'Aaron', src: avatarJohn },
+    { id: 'avatar_sam', name: 'Kai', src: avatarSam },
+    { id: 'avatar_laura', name: 'Laura', src: avatarLaura }
   ];
   
   const handleAvatarSelect = (avatarId) => {
