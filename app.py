@@ -113,12 +113,11 @@ def clear_uploads_and_context(upload_dir, logger):
 
     logger.info(f"Cleanup complete. Deleted {deleted_count} files. Encountered {error_count} errors.")
 
-# Define the root route to serve the test form
 # Define the root route to serve the built frontend UI
 @app.route('/')
 def index():
     """Serve the main frontend UI (Vite build)."""
-    return render_template('voice_interface.html')
+    return send_from_directory(os.path.join(app.root_path, 'frontend', 'dist'), 'index.html')
 
 # Route to serve static assets for the frontend UI
 @app.route('/assets/<path:filename>')
@@ -989,6 +988,21 @@ def upload_image():
         import traceback
         app.logger.error(traceback.format_exc())
         return jsonify({"error": f"Upload failed: {str(e)}"}), 500
+
+# Catch-all route for client-side routing (SPA support)
+@app.route('/<path:path>')
+def catch_all(path):
+    """
+    Catch-all route to serve the React app for any unmatched routes.
+    This enables client-side routing to work properly.
+    """
+    # Check if the requested path is a file in the dist directory
+    file_path = os.path.join(app.root_path, 'frontend', 'dist', path)
+    if os.path.isfile(file_path):
+        return send_from_directory(os.path.join(app.root_path, 'frontend', 'dist'), path)
+    
+    # For all other routes, serve the main index.html (client-side routing)
+    return send_from_directory(os.path.join(app.root_path, 'frontend', 'dist'), 'index.html')
 
 if __name__ == '__main__':
     # Load environment variables FIRST
