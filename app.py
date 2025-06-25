@@ -1018,4 +1018,4 @@ if __name__ == '__main__':
     app.logger.info("Starting Flask application...")
     # Use host='0.0.0.0' to make it accessible on the network if needed
     # Turn debug=False for production-like behavior (avoids auto-reloading which triggers cleanup often)
-    app.run(host='0.0.0.0', port=5003, debug=True) # debug=True is useful for development
+    app.run(host='0.0.0.0', port=5004, debug=True) # debug=True is useful for development
